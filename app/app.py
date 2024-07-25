@@ -2,7 +2,6 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-
-@app.get("/")
-def index():
-    return {"message": "Hello, World!"}
+@app.get("/{prekol}")
+def index(prekol: str):
+    return {"Zdarova": prekol}
