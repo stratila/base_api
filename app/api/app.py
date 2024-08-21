@@ -21,6 +21,7 @@ def user_post(user: User):
     user_id = users.add_user(user.username)
     return {"id": user_id, **user.model_dump()}
 
+
 @app.get("/users/{user_id}")
 def user_get(user_id: int):
     return users.get_user(user_id)
