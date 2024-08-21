@@ -4,6 +4,7 @@ from app.database.models import users
 
 
 def add_user(username) -> int:
+
     with engine.connect() as connection:
         result = connection.execute(
             insert(users).values(username=username).returning(users.c.id),
