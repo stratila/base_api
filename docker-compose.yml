@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    build: 
+    build:
       context: .
     volumes:
       - ./app:/app
@@ -11,16 +11,23 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://user:password@db:5432/mydatabase
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
 
   db:
     image: postgres:13
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
+      - POSTGRES_USER=${DB_USER} # superuser
+      - POSTGRES_PASSWORD=${DB_PASSWORD} # superuser password
+      - POSTGRES_DB=${DB_NAME} # default database, if not specified POSTGRES_USER will be used
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_apidb:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  postgres_data_apidb:
