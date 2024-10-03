@@ -1,0 +1,5 @@
+permission_name,role_name
+read_all_users,administrator
+write_all_users,administrator
+read_self_user,user
+write_self_user,user

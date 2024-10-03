@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+RUN pip install poetry==1.4.0
+
+# docker build -f dockerfiles/dockerfile.python-poetry.3.12-1.4.0 -t stratila/python-poetry:3.12-1.4.0 ./dockerfiles
+# docker login
+# docker push
