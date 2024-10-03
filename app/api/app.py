@@ -1,27 +1,39 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, Depends
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
-from app.database import users
-
-
-class User(BaseModel):
-    username: str
-
+from app.api.routers.users import router as users_router
+from app.api.routers.auth import router as auth_router
+from app.api.security.authentication import JWTBearer
+from app.service.errors import ServiceError
 
 app = FastAPI()
 
 
-@app.get("/")
-def index():
-    return "Index"
+# @app.get("/")
+# def index():
+#     return "Index"
 
 
-@app.post("/users")
-def user_post(user: User):
-    user_id = users.add_user(user.username)
-    return {"id": user_id, **user.model_dump()}
+@app.exception_handler(500)
+def internal_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content=jsonable_encoder(
+            {"code": 500, "error_message": "Internal Server Error"}
+        ),
+    )
 
 
-@app.get("/users/{user_id}")
-def user_get(user_id: int):
-    return users.get_user(user_id)
+@app.exception_handler(ServiceError)
+def service_error_handler(request: Request, exc: ServiceError):
+    service_error_data = exc.__dict__()
+    http_status_code = service_error_data.pop("http_code")
+    return JSONResponse(
+        status_code=http_status_code,
+        content=jsonable_encoder(service_error_data),
+    )
+
+
+app.include_router(auth_router, tags=["authentication"])
+app.include_router(users_router, tags=["users"], dependencies=[Depends(JWTBearer())])

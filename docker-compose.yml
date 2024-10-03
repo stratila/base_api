@@ -4,28 +4,33 @@ services:
   web:
     build:
       context: .
+      target: development
     volumes:
       - ./app:/app
+      - ./tests:/tests
     ports:
       - "8000:8000"
     depends_on:
       - db
     environment:
-      - DB_HOST=${DB_HOST}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_USER=${DB_USER:-learning_api_db_user}
+      - DB_PASSWORD=${DB_PASSWORD:-learning_api_database_password}
+      - DB_NAME=${DB_NAME:-learning_api_database}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-secret}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
 
   db:
     image: postgres:13
     expose:
       - 5432
     ports:
-      - 5432:5432
+      - 54321:5432
     environment:
-      - POSTGRES_USER=${DB_USER} # superuser
-      - POSTGRES_PASSWORD=${DB_PASSWORD} # superuser password
-      - POSTGRES_DB=${DB_NAME} # default database, if not specified POSTGRES_USER will be used
+      - POSTGRES_USER=${DB_USER:-db} # superuser
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-learning_api_database_password} # superuser password
+      - POSTGRES_DB=${DB_NAME:-learning_api_database} # default database, if not specified POSTGRES_USER will be used
     volumes:
       - postgres_data_apidb:/var/lib/postgresql/data
 

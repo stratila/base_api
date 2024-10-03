@@ -1,0 +1,59 @@
+name: Feature Branch Test Pipeline
+
+on:
+  push:
+    branches:
+      - feature/**
+
+jobs:
+  test:
+    name: test-job
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: learning_api_database # should exist
+          # TODO refactor:
+          # tests/conftest.py
+          # app/config.py
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.6.1
+
+      # - name: Login to GitHub Docker registry (optional)
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t learning_api:test --target development .
+
+      - name: Find Host IP Address
+        run: |
+          echo "host_ip=$(/sbin/ip -4 addr show docker0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" >> $GITHUB_OUTPUT
+        id: host_ip
+
+      - name: Run tests in Docker container
+        run: |
+          docker run --rm \
+            --workdir /tests -e DB_NAME=test_db -e DB_USER=postgres \
+            -e DB_PASSWORD=postgres -e DB_HOST=${{ steps.host_ip.outputs.host_ip }} \
+            learning_api:test pytest --disable-warnings
